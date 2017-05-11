@@ -11,7 +11,7 @@ When constructing new logger instance need to pass **logLevel** and optional **f
 ## Usage
 
 ```javascript
-const LoggerClass = require('@vanioinformatika/express-logger').Logger
+const Logger = require('@vanioinformatika/express-logger').Logger
 
 const logLevel = 'info'
 const fluentConfig = {
@@ -23,7 +23,7 @@ const fluentConfig = {
   }
 }
 
-const logger = new LoggerClass(logLevel, fluentConfig)
+const logger = new Logger(logLevel, fluentConfig)
 
 logger.info('Message')
 ```
