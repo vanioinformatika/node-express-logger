@@ -13,6 +13,10 @@
       "email": "vincekovacs@hotmail.com"
     }
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vanioinformatika/node-express-logger.git"
+  },
   "main": "dist/index.js",
   "types": "./lib/index.d.ts",
   "engines": {
@@ -20,7 +24,10 @@
   },
   "scripts": {
     "compile": "tsc",
-    "test": "mocha --require ts-node/register src/**/*.spec.ts"
+    "test": "mocha --require ts-node/register src/**/*.spec.ts",
+    "preversion": "git push && npm test",
+    "version": "npm run compile && git add -A dist",
+    "postversion": "git push && git push --tags"
   },
   "dependencies": {
     "fluent-logger": "^2.3.0",
