@@ -8,17 +8,37 @@ When constructing new logger instance need to pass **logLevel** and optional **f
 
 > The fluentd logging need to enabled via config.
 
+## Usage
+
+```javascript
+const LoggerClass = require('express-logger').Logger
+
+const logLevel = 'info'
+const fluentConfig = {
+  enabled: true,
+  tag: 'application tag',
+  config: {
+    host: 'localhost',
+    port: 12345
+  }
+}
+
+const logger = new LoggerClass(logLevel, fluentConfig)
+
+logger.info('Message')
+```
+
 ## Examples
 
 Initialize logger only with console logger:
 
-```typescript
+```javascript
 const logger = new Logger('info')
 ```
 
 Initialize logger with console and fluent logger:
 
-```typescript
+```javascript
 const logger = new Logger('info', {
   enabled: true,
   tag: 'application-name',
