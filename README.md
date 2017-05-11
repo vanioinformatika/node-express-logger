@@ -1,6 +1,6 @@
 # Express console and fluentd logger
 
-[![Build Status](https://travis-ci.org/vanioinformatika/node-express-logger.svg?branch=master)](https://travis-ci.org/vanioinformatika/node-express-logger)
+[![Build Status](https://travis-ci.org/vanioinformatika/node-express-logger.svg?branch=develop)](https://travis-ci.org/vanioinformatika/node-express-logger)
 
 Logger is configured to log messages into console and [fluentd](http://www.fluentd.org/).
 
