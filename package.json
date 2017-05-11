@@ -1,5 +1,5 @@
 {
-  "name": "node-express-logger",
+  "name": "@vanioinformatika/node-express-logger",
   "version": "0.0.1",
   "author": "Kovács Vince <vincekovacs@hotmail.com>",
   "license": "MIT",
