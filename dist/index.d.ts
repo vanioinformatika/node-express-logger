@@ -1,1 +1,1 @@
-export { Logger } from './src/Logger';
+export { Logger, FluentConfig } from './src/Logger';
