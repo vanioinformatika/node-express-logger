@@ -1,25 +1,25 @@
-import * as Winston from "winston"
+import * as Winston from "winston";
 
 declare namespace fluentLogger {
-  interface WinstonTransportOptions {
-  }
+    interface WinstonTransportOptions {
+    }
 
-  class WinstonTransport extends Winston.Transport {
-    constructor (tag: string, options: WinstonTransportOptions)
-  }
+    class WinstonTransport extends Winston.Transport {
+        constructor(tag: string, options: WinstonTransportOptions)
+    }
 
-  function configure (config: any): void
+    function configure(config: any): void;
 
-  function createFluentSender (tag: any, options: any): any
+    function createFluentSender(tag: any, options: any): any;
 
-  const support: {
-    log4jsAppender: (tag: any, options: any) => any
-    winstonTransport: () => new(tag: string, options: WinstonTransportOptions) => WinstonTransport
-  }
+    const support: {
+        log4jsAppender: (tag: any, options: any) => any
+        winstonTransport: () => new(tag: string, options: WinstonTransportOptions) => WinstonTransport
+    };
 
-  const appender: any
+    const appender: any;
 
-  const EventTime: any
+    const EventTime: any;
 }
 
 export = fluentLogger;

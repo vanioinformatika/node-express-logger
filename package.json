@@ -25,6 +25,8 @@
   "scripts": {
     "compile": "tsc",
     "test": "mocha --require ts-node/register src/**/*.spec.ts",
+    "lint": "npm run lint:ts",
+    "lint:ts": "tslint --type-check --project . src/**/*.ts",
     "preversion": "git push && npm test",
     "version": "npm run compile && git add -A dist",
     "postversion": "git push && git push --tags"
@@ -47,6 +49,7 @@
     "sinon": "^2.2.0",
     "sinon-chai": "^2.10.0",
     "ts-node": "^3.0.4",
+    "tslint": "^5.4.3",
     "typescript": "^2.3.2"
   }
 }
