@@ -39,16 +39,26 @@ describe("logger", () => {
         });
 
         describe("Middlewares", () => {
-            const requestUrl = "http://valami";
+            const requestHost = "myhost:9000";
+            const requestUrl = "/valami";
             const requestId = "abcd1234";
             const remoteAddress = "10.128.2.84";
+            const fullRequestUrl = requestHost + requestUrl;
             const request: Express.Request = {
                 headers: {
                     "x-request-id": requestId,
+                    "host": requestHost,
                 },
                 url: requestUrl,
+                originalUrl: requestUrl,
                 connection: {
                     remoteAddress,
+                },
+                get(headerName: string) {
+                    if (headerName === "host") {
+                        return requestHost;
+                    }
+                    return null;
                 },
             } as any;
 
@@ -70,7 +80,7 @@ describe("logger", () => {
                         expect(meta.client_ip).to.equal(remoteAddress);
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.ts).to.exist;
 
                         return logger;
@@ -104,7 +114,7 @@ describe("logger", () => {
                         expect(meta.client_ip).to.equal(remoteAddress);
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.ts).to.exist;
 
                         return logger;
@@ -132,7 +142,7 @@ describe("logger", () => {
                         expect(meta.client_ip).to.equal(remoteAddress);
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.ts).to.exist;
 
                         return logger;
@@ -162,7 +172,7 @@ describe("logger", () => {
                         expect(meta.client_ip).to.equal(forwardedRemoteAddress);
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.ts).to.exist;
 
                         return logger;
@@ -187,7 +197,7 @@ describe("logger", () => {
                         expect(level).to.equal("info");
                         expect(message).to.equal("response");
                         expect(msg.request_id).to.equal(requestId);
-                        expect(msg.request_url).to.equal(requestUrl);
+                        expect(msg.request_url).to.equal(fullRequestUrl);
                         expect(msg.status).to.equal(res.statusCode);
                         expect(msg.body).to.equal((res as any).sentBody);
                         expect(msg.ts).to.exist;
@@ -209,7 +219,7 @@ describe("logger", () => {
                         expect(level).to.equal("info");
                         expect(message).to.equal("response");
                         expect(msg.request_id).to.equal(requestId);
-                        expect(msg.request_url).to.equal(requestUrl);
+                        expect(msg.request_url).to.equal(fullRequestUrl);
                         expect(msg.status).to.equal(res.statusCode);
                         expect(msg.body).to.not.exist;
                         expect(msg.ts).to.exist;
@@ -230,7 +240,7 @@ describe("logger", () => {
                         expect(level).to.equal("warn");
                         expect(message).to.equal("response");
                         expect(msg.request_id).to.equal(requestId);
-                        expect(msg.request_url).to.equal(requestUrl);
+                        expect(msg.request_url).to.equal(fullRequestUrl);
                         expect(msg.status).to.equal(res.statusCode);
                         expect(msg.body).to.equal(undefined);
                         expect(msg.ts).to.exist;
@@ -251,7 +261,7 @@ describe("logger", () => {
                         expect(level).to.equal("error");
                         expect(message).to.equal("response");
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.status).to.equal(res.statusCode);
                         expect(meta.body).to.equal(undefined);
                         expect(meta.ts).to.exist;
@@ -276,7 +286,7 @@ describe("logger", () => {
                         expect(message).to.equal("error response");
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.status).to.equal(res.statusCode);
                         expect(meta.ts).to.exist;
 
@@ -296,7 +306,7 @@ describe("logger", () => {
                         expect(message).to.equal("client error response");
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
-                        expect(meta.request_url).to.equal(requestUrl);
+                        expect(meta.request_url).to.equal(fullRequestUrl);
                         expect(meta.status).to.equal(res.statusCode);
                         expect(meta.ts).to.exist;
 

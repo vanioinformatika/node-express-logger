@@ -37,7 +37,7 @@ export class Logger extends Winston.Logger {
     public loggingMiddlewarePre(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
         this.info("request", this.datingEvent({
             request_id: req.headers["x-request-id"],
-            request_url: req.url,
+            request_url: req.get("host") + req.originalUrl,
             method: req.method,
             client_ip: req.headers["x-forwarded-for"] || req.connection.remoteAddress,
         }));
@@ -81,7 +81,7 @@ export class Logger extends Winston.Logger {
     public loggingMiddlewarePost(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
         const event = this.datingEvent({
             request_id: req.headers["x-request-id"],
-            request_url: req.url,
+            request_url: req.get("host") + req.originalUrl,
             status: res.statusCode,
             body: undefined,
         });
@@ -108,7 +108,7 @@ export class Logger extends Winston.Logger {
         this.warn("error response", this.datingEvent({
             msg: err.message,
             method: req.method,
-            request_url: req.url,
+            request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
             status: res.statusCode,
         }));
@@ -118,7 +118,7 @@ export class Logger extends Winston.Logger {
         this.warn("client error response", this.datingEvent({
             msg,
             method: req.method,
-            request_url: req.url,
+            request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
             status: res.statusCode,
         }));
