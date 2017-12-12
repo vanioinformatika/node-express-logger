@@ -4,6 +4,9 @@ const FluentLogger = require("fluent-logger");
 const Microtime = require("microtime");
 const Winston = require("winston");
 const FluentTransport = FluentLogger.support.winstonTransport();
+const createErrorMessage = (err) => {
+    return err.stack ? err.stack.replace(/[\n\r]/g, "[next]") : err.toString() + " [no stack]";
+};
 class Logger extends Winston.Logger {
     constructor(logLevel, fluentConfig) {
         fluentConfig = fluentConfig || { enabled: false };
@@ -78,7 +81,7 @@ class Logger extends Winston.Logger {
     }
     logHttpResponseError(req, res, err) {
         this.warn("error response", this.datingEvent({
-            msg: err.message,
+            msg: createErrorMessage(err),
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
@@ -95,8 +98,9 @@ class Logger extends Winston.Logger {
         }));
     }
     logApplicationConfigError(err) {
+        const msg = err ? createErrorMessage(err) : "unknown error";
         this.error("configuration error, application stopped", this.datingEvent({
-            msg: err ? err.message : "unknown error",
+            msg,
         }));
     }
     logApplicationStart() {
