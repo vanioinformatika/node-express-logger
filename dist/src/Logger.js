@@ -80,7 +80,7 @@ class Logger extends Winston.Logger {
         next();
     }
     logHttpResponseError(req, res, err) {
-        this.warn("error response", this.datingEvent({
+        this.error("error response", this.datingEvent({
             msg: createErrorMessage(err),
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
