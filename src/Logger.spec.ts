@@ -284,8 +284,8 @@ describe("logger", () => {
 
                     logger.error = (message: string, meta: any): LoggerInstance => {
                         expect(message).to.equal("error response");
-                        expect(meta.msg).to.match("^Error: valami.+")
-                        expect(meta.msg).to.match("\\[next\\]")
+                        expect(meta.msg).to.match(/^Error: valami.+/);
+                        expect(meta.msg).to.match(/\[next\]/);
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
                         expect(meta.request_url).to.equal(fullRequestUrl);
