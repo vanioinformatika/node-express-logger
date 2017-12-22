@@ -8,8 +8,8 @@ export type LoggingResponse = Express.Response & { chunks?: Buffer[], sentBody?:
 const FluentTransport = FluentLogger.support.winstonTransport();
 
 const createErrorMessage = (err: any) => {
-    return err.stack ? err.stack.replace(/[\n\r]/g, "[next]") : err.toString() + " [no stack]"
-}
+    return err.stack ? err.stack.replace(/[\n\r]/g, "[next]") : err.toString() + " [no stack]";
+};
 
 export interface FluentConfig {
     enabled: boolean;
@@ -109,7 +109,7 @@ export class Logger extends Winston.Logger {
     }
 
     public logHttpResponseError(req: Express.Request, res: Express.Response, err: any): void {
-        this.warn("error response", this.datingEvent({
+        this.error("error response", this.datingEvent({
             msg: createErrorMessage(err),
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
@@ -129,7 +129,7 @@ export class Logger extends Winston.Logger {
     }
 
     public logApplicationConfigError(err: any): void {
-        const msg = err ? createErrorMessage(err) : "unknown error"
+        const msg = err ? createErrorMessage(err) : "unknown error";
         this.error("configuration error, application stopped", this.datingEvent({
             msg,
         }));
