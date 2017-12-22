@@ -116,6 +116,7 @@ class Logger extends Winston.Logger {
         };
         // We can safely override date object because every time new date object is created
         // so no need to preserve the original object reference
+        /* tslint:disable-next-line:prefer-object-spread */
         return event ? Object.assign(date, event) : date;
     }
 }
