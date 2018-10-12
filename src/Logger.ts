@@ -29,8 +29,8 @@ export interface ExpressLogger extends Winston.Logger {
     logApplicationStop(): void;
 }
 
-export function createLogger (logLevel: string, fluentConfig?: FluentConfig): ExpressLogger {
-    
+export function createLogger(logLevel: string, fluentConfig?: FluentConfig): ExpressLogger {
+
     fluentConfig = fluentConfig || {enabled: false};
 
     const transports: Transport[] = [];
@@ -38,7 +38,7 @@ export function createLogger (logLevel: string, fluentConfig?: FluentConfig): Ex
     // Add console logger
     transports.push(new Winston.transports.Console({
         format: Winston.format.combine(
-            Winston.format.timestamp()
+            Winston.format.timestamp(),
         ),
         level: logLevel,
     }));
@@ -49,12 +49,13 @@ export function createLogger (logLevel: string, fluentConfig?: FluentConfig): Ex
     }
 
     const options: Winston.LoggerOptions = {
-        transports
-    }
-    
-    const expressLogger: ExpressLogger = Winston.createLogger(options) as ExpressLogger
+        transports,
+    };
 
-    expressLogger.loggingMiddlewarePre = (function (req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
+    const expressLogger: ExpressLogger = Winston.createLogger(options) as ExpressLogger;
+
+    expressLogger.loggingMiddlewarePre = (
+        function(this: ExpressLogger, req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
         this.info("request", datingEvent({
             request_id: req.headers["x-request-id"],
             request_url: req.get("host") + req.originalUrl,
@@ -95,71 +96,77 @@ export function createLogger (logLevel: string, fluentConfig?: FluentConfig): Ex
         }
 
         next();
-    }).bind(expressLogger)
+    }).bind(expressLogger);
 
     // Middleware for logging response status
-    expressLogger.loggingMiddlewarePost = (function (req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
-        const event = datingEvent({
-            request_id: req.headers["x-request-id"],
-            request_url: req.get("host") + req.originalUrl,
-            status: res.statusCode,
-            body: undefined,
-        });
+    expressLogger.loggingMiddlewarePost = (
+        function(this: ExpressLogger, req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
+            const event = datingEvent({
+                request_id: req.headers["x-request-id"],
+                request_url: req.get("host") + req.originalUrl,
+                status: res.statusCode,
+                body: undefined,
+            });
 
-        let level;
-        if (res.statusCode < 400) {
-            if (req.method === "GET") {
-                event.body = res.sentBody;
+            let level;
+            if (res.statusCode < 400) {
+                if (req.method === "GET") {
+                    event.body = res.sentBody;
+                }
+                level = "info";
+                /* tslint:disable-next-line:prefer-conditional-expression */
+            } else if (res.statusCode >= 400 && res.statusCode < 500) {
+                level = "warn";
+            } else {
+                level = "error";
             }
-            level = "info";
-            /* tslint:disable-next-line:prefer-conditional-expression */
-        } else if (res.statusCode >= 400 && res.statusCode < 500) {
-            level = "warn";
-        } else {
-            level = "error";
-        }
 
-        this.log(level, "response", event);
+            this.log(level, "response", event);
 
-        next();
-    }).bind(expressLogger)
+            next();
+        }).bind(expressLogger);
 
-    expressLogger.logHttpResponseError = (function (req: Express.Request, res: Express.Response, err: any): void {
-        this.error("error response", datingEvent({
-            msg: createErrorMessage(err),
-            method: req.method,
-            request_url: req.get("host") + req.originalUrl,
-            request_id: req.headers["x-request-id"],
-            status: res.statusCode,
-        }));
-    }).bind(expressLogger)
+    expressLogger.logHttpResponseError = (
+        function(this: ExpressLogger, req: Express.Request, res: Express.Response, err: any): void {
+            this.error("error response", datingEvent({
+                msg: createErrorMessage(err),
+                method: req.method,
+                request_url: req.get("host") + req.originalUrl,
+                request_id: req.headers["x-request-id"],
+                status: res.statusCode,
+            }));
+        }).bind(expressLogger);
 
-    expressLogger.logHttpResponseWarn = (function (req: Express.Request, res: Express.Response, msg: string): void {
-        this.warn("client error response", datingEvent({
-            msg,
-            method: req.method,
-            request_url: req.get("host") + req.originalUrl,
-            request_id: req.headers["x-request-id"],
-            status: res.statusCode,
-        }));
-    }).bind(expressLogger)
+    expressLogger.logHttpResponseWarn = (
+        function(this: ExpressLogger, req: Express.Request, res: Express.Response, msg: string): void {
+            this.warn("client error response", datingEvent({
+                msg,
+                method: req.method,
+                request_url: req.get("host") + req.originalUrl,
+                request_id: req.headers["x-request-id"],
+                status: res.statusCode,
+            }));
+        }).bind(expressLogger);
 
-    expressLogger.logApplicationConfigError = (function (err: any): void {
-        const msg = err ? createErrorMessage(err) : "unknown error";
-        this.error("configuration error, application stopped", datingEvent({
-            msg,
-        }));
-    }).bind(expressLogger)
+    expressLogger.logApplicationConfigError = (
+        function(this: ExpressLogger, err: any): void {
+            const msg = err ? createErrorMessage(err) : "unknown error";
+            this.error("configuration error, application stopped", datingEvent({
+                msg,
+            }));
+        }).bind(expressLogger);
 
-    expressLogger.logApplicationStart = (function (): void {
-        this.warn("application start", datingEvent());
-    }).bind(expressLogger)
+    expressLogger.logApplicationStart = (
+        function(this: ExpressLogger): void {
+            this.warn("application start", datingEvent());
+        }).bind(expressLogger);
 
-    expressLogger.logApplicationStop = (function (): void {
-        this.warn("application stop", datingEvent());
-    }).bind(expressLogger)
+    expressLogger.logApplicationStop = (
+        function(this: ExpressLogger): void {
+            this.warn("application stop", datingEvent());
+        }).bind(expressLogger);
 
-    return expressLogger
+    return expressLogger;
 }
 
 function datingEvent<T>(event?: T): T & { ts: number, mts: number } {

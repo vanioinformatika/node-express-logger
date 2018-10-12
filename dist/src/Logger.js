@@ -20,7 +20,7 @@ function createLogger(logLevel, fluentConfig) {
         transports.push(new FluentTransport(fluentConfig.tag, fluentConfig.config));
     }
     const options = {
-        transports
+        transports,
     };
     const expressLogger = Winston.createLogger(options);
     expressLogger.loggingMiddlewarePre = (function (req, res, next) {
