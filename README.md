@@ -2,16 +2,16 @@
 
 [![Build Status](https://travis-ci.org/vanioinformatika/node-express-logger.svg?branch=develop)](https://travis-ci.org/vanioinformatika/node-express-logger)
 
-Logger is configured to log messages into console and [fluentd](http://www.fluentd.org/).
+Logger is configured to log messages to the console and [fluentd](http://www.fluentd.org/).
 
-When constructing new logger instance need to pass **logLevel** and optional **fluentConfig**.
+When creating new logger instance need to pass **logLevel** and optional **fluentConfig**.
 
-> The fluentd logging need to enabled via config.
+> Fluentd logging is enabled via config.
 
 ## Usage
 
 ```javascript
-const Logger = require('@vanioinformatika/express-logger').Logger
+const createLogger = require('@vanioinformatika/express-logger').createLogger
 
 const logLevel = 'info'
 const fluentConfig = {
@@ -23,7 +23,7 @@ const fluentConfig = {
   }
 }
 
-const logger = new Logger(logLevel, fluentConfig)
+const logger = createLogger(logLevel, fluentConfig)
 
 logger.info('Message')
 ```
@@ -33,13 +33,13 @@ logger.info('Message')
 Initialize logger only with console logger:
 
 ```javascript
-const logger = new Logger('info')
+const logger = createLogger('info')
 ```
 
 Initialize logger with console and fluent logger:
 
 ```javascript
-const logger = new Logger('info', {
+const logger = createLogger('info', {
   enabled: true,
   tag: 'application-name',
   config: {

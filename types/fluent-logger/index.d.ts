@@ -1,10 +1,11 @@
 import * as Winston from "winston";
+import * as Transport from "winston-transport";
 
 declare namespace fluentLogger {
     interface WinstonTransportOptions {
     }
 
-    class WinstonTransport extends Winston.Transport {
+    class WinstonTransport extends Transport {
         constructor(tag: string, options: WinstonTransportOptions)
     }
 

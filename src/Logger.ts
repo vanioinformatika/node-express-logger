@@ -2,6 +2,7 @@ import * as Express from "express";
 import * as FluentLogger from "fluent-logger";
 import * as Microtime from "microtime";
 import * as Winston from "winston";
+import * as Transport from "winston-transport";
 
 export type LoggingResponse = Express.Response & { chunks?: Buffer[], sentBody?: string };
 
@@ -17,29 +18,44 @@ export interface FluentConfig {
     config?: FluentLogger.WinstonTransportOptions;
 }
 
-export class Logger extends Winston.Logger {
-    public constructor(logLevel: string, fluentConfig?: FluentConfig) {
-        fluentConfig = fluentConfig || {enabled: false};
+interface ExpressLogger extends Winston.Logger {
+    loggingMiddlewarePre(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void;
+    loggingMiddlewarePost(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void;
+    logHttpResponseError(req: Express.Request, res: Express.Response, err: any): void;
+    logHttpResponseError(req: Express.Request, res: Express.Response, err: any): void;
+    logHttpResponseWarn(req: Express.Request, res: Express.Response, msg: string): void;
+    logApplicationConfigError(err: any): void;
+    logApplicationStart(): void;
+    logApplicationStop(): void;
+}
 
-        const transports: Winston.TransportInstance[] = [];
+export function createLogger (logLevel: string, fluentConfig?: FluentConfig): ExpressLogger {
+    
+    fluentConfig = fluentConfig || {enabled: false};
 
-        // Add console logger
-        transports.push(new Winston.transports.Console({
-            timestamp: true,
-            colorize: false,
-            level: logLevel,
-        }));
+    const transports: Transport[] = [];
 
-        // Add fluent logger
-        if (fluentConfig.enabled) {
-            transports.push(new FluentTransport(fluentConfig.tag, fluentConfig.config));
-        }
+    // Add console logger
+    transports.push(new Winston.transports.Console({
+        format: Winston.format.combine(
+            Winston.format.timestamp()
+        ),
+        level: logLevel,
+    }));
 
-        super({transports});
+    // Add fluent logger
+    if (fluentConfig.enabled) {
+        transports.push(new FluentTransport(fluentConfig.tag, fluentConfig.config));
     }
 
-    public loggingMiddlewarePre(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
-        this.info("request", this.datingEvent({
+    const options: Winston.LoggerOptions = {
+        transports
+    }
+    
+    const expressLogger: ExpressLogger = Winston.createLogger(options) as ExpressLogger
+
+    expressLogger.loggingMiddlewarePre = (function (req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
+        this.info("request", datingEvent({
             request_id: req.headers["x-request-id"],
             request_url: req.get("host") + req.originalUrl,
             method: req.method,
@@ -79,11 +95,11 @@ export class Logger extends Winston.Logger {
         }
 
         next();
-    }
+    }).bind(expressLogger)
 
     // Middleware for logging response status
-    public loggingMiddlewarePost(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
-        const event = this.datingEvent({
+    expressLogger.loggingMiddlewarePost = (function (req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void {
+        const event = datingEvent({
             request_id: req.headers["x-request-id"],
             request_url: req.get("host") + req.originalUrl,
             status: res.statusCode,
@@ -106,52 +122,54 @@ export class Logger extends Winston.Logger {
         this.log(level, "response", event);
 
         next();
-    }
+    }).bind(expressLogger)
 
-    public logHttpResponseError(req: Express.Request, res: Express.Response, err: any): void {
-        this.error("error response", this.datingEvent({
+    expressLogger.logHttpResponseError = (function (req: Express.Request, res: Express.Response, err: any): void {
+        this.error("error response", datingEvent({
             msg: createErrorMessage(err),
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
             status: res.statusCode,
         }));
-    }
+    }).bind(expressLogger)
 
-    public logHttpResponseWarn(req: Express.Request, res: Express.Response, msg: string): void {
-        this.warn("client error response", this.datingEvent({
+    expressLogger.logHttpResponseWarn = (function (req: Express.Request, res: Express.Response, msg: string): void {
+        this.warn("client error response", datingEvent({
             msg,
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
             status: res.statusCode,
         }));
-    }
+    }).bind(expressLogger)
 
-    public logApplicationConfigError(err: any): void {
+    expressLogger.logApplicationConfigError = (function (err: any): void {
         const msg = err ? createErrorMessage(err) : "unknown error";
-        this.error("configuration error, application stopped", this.datingEvent({
+        this.error("configuration error, application stopped", datingEvent({
             msg,
         }));
-    }
+    }).bind(expressLogger)
 
-    public logApplicationStart(): void {
-        this.warn("application start", this.datingEvent());
-    }
+    expressLogger.logApplicationStart = (function (): void {
+        this.warn("application start", datingEvent());
+    }).bind(expressLogger)
 
-    public logApplicationStop(): void {
-        this.warn("application stop", this.datingEvent());
-    }
+    expressLogger.logApplicationStop = (function (): void {
+        this.warn("application stop", datingEvent());
+    }).bind(expressLogger)
 
-    private datingEvent<T>(event?: T): T & { ts: number, mts: number } {
-        const date = {
-            ts: Date.now(),
-            mts: Microtime.now(),
-        };
+    return expressLogger
+}
 
-        // We can safely override date object because every time new date object is created
-        // so no need to preserve the original object reference
-        /* tslint:disable-next-line:prefer-object-spread */
-        return event ? Object.assign(date, event) : date as T & { ts: number, mts: number };
-    }
+function datingEvent<T>(event?: T): T & { ts: number, mts: number } {
+    const date = {
+        ts: Date.now(),
+        mts: Microtime.now(),
+    };
+
+    // We can safely override date object because every time new date object is created
+    // so no need to preserve the original object reference
+    /* tslint:disable-next-line:prefer-object-spread */
+    return event ? Object.assign(date, event) : date as T & { ts: number, mts: number };
 }
