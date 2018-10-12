@@ -18,7 +18,7 @@ export interface FluentConfig {
     config?: FluentLogger.WinstonTransportOptions;
 }
 
-interface ExpressLogger extends Winston.Logger {
+export interface ExpressLogger extends Winston.Logger {
     loggingMiddlewarePre(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void;
     loggingMiddlewarePost(req: Express.Request, res: LoggingResponse, next: Express.NextFunction): void;
     logHttpResponseError(req: Express.Request, res: Express.Response, err: any): void;

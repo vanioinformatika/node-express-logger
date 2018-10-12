@@ -7,24 +7,24 @@ const FluentTransport = FluentLogger.support.winstonTransport();
 const createErrorMessage = (err) => {
     return err.stack ? err.stack.replace(/[\n\r]/g, "[next]") : err.toString() + " [no stack]";
 };
-class Logger extends Winston.Logger {
-    constructor(logLevel, fluentConfig) {
-        fluentConfig = fluentConfig || { enabled: false };
-        const transports = [];
-        // Add console logger
-        transports.push(new Winston.transports.Console({
-            timestamp: true,
-            colorize: false,
-            level: logLevel,
-        }));
-        // Add fluent logger
-        if (fluentConfig.enabled) {
-            transports.push(new FluentTransport(fluentConfig.tag, fluentConfig.config));
-        }
-        super({ transports });
+function createLogger(logLevel, fluentConfig) {
+    fluentConfig = fluentConfig || { enabled: false };
+    const transports = [];
+    // Add console logger
+    transports.push(new Winston.transports.Console({
+        format: Winston.format.combine(Winston.format.timestamp()),
+        level: logLevel,
+    }));
+    // Add fluent logger
+    if (fluentConfig.enabled) {
+        transports.push(new FluentTransport(fluentConfig.tag, fluentConfig.config));
     }
-    loggingMiddlewarePre(req, res, next) {
-        this.info("request", this.datingEvent({
+    const options = {
+        transports
+    };
+    const expressLogger = Winston.createLogger(options);
+    expressLogger.loggingMiddlewarePre = (function (req, res, next) {
+        this.info("request", datingEvent({
             request_id: req.headers["x-request-id"],
             request_url: req.get("host") + req.originalUrl,
             method: req.method,
@@ -53,10 +53,10 @@ class Logger extends Winston.Logger {
             };
         }
         next();
-    }
+    }).bind(expressLogger);
     // Middleware for logging response status
-    loggingMiddlewarePost(req, res, next) {
-        const event = this.datingEvent({
+    expressLogger.loggingMiddlewarePost = (function (req, res, next) {
+        const event = datingEvent({
             request_id: req.headers["x-request-id"],
             request_url: req.get("host") + req.originalUrl,
             status: res.statusCode,
@@ -78,47 +78,48 @@ class Logger extends Winston.Logger {
         }
         this.log(level, "response", event);
         next();
-    }
-    logHttpResponseError(req, res, err) {
-        this.error("error response", this.datingEvent({
+    }).bind(expressLogger);
+    expressLogger.logHttpResponseError = (function (req, res, err) {
+        this.error("error response", datingEvent({
             msg: createErrorMessage(err),
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
             status: res.statusCode,
         }));
-    }
-    logHttpResponseWarn(req, res, msg) {
-        this.warn("client error response", this.datingEvent({
+    }).bind(expressLogger);
+    expressLogger.logHttpResponseWarn = (function (req, res, msg) {
+        this.warn("client error response", datingEvent({
             msg,
             method: req.method,
             request_url: req.get("host") + req.originalUrl,
             request_id: req.headers["x-request-id"],
             status: res.statusCode,
         }));
-    }
-    logApplicationConfigError(err) {
+    }).bind(expressLogger);
+    expressLogger.logApplicationConfigError = (function (err) {
         const msg = err ? createErrorMessage(err) : "unknown error";
-        this.error("configuration error, application stopped", this.datingEvent({
+        this.error("configuration error, application stopped", datingEvent({
             msg,
         }));
-    }
-    logApplicationStart() {
-        this.warn("application start", this.datingEvent());
-    }
-    logApplicationStop() {
-        this.warn("application stop", this.datingEvent());
-    }
-    datingEvent(event) {
-        const date = {
-            ts: Date.now(),
-            mts: Microtime.now(),
-        };
-        // We can safely override date object because every time new date object is created
-        // so no need to preserve the original object reference
-        /* tslint:disable-next-line:prefer-object-spread */
-        return event ? Object.assign(date, event) : date;
-    }
+    }).bind(expressLogger);
+    expressLogger.logApplicationStart = (function () {
+        this.warn("application start", datingEvent());
+    }).bind(expressLogger);
+    expressLogger.logApplicationStop = (function () {
+        this.warn("application stop", datingEvent());
+    }).bind(expressLogger);
+    return expressLogger;
 }
-exports.Logger = Logger;
+exports.createLogger = createLogger;
+function datingEvent(event) {
+    const date = {
+        ts: Date.now(),
+        mts: Microtime.now(),
+    };
+    // We can safely override date object because every time new date object is created
+    // so no need to preserve the original object reference
+    /* tslint:disable-next-line:prefer-object-spread */
+    return event ? Object.assign(date, event) : date;
+}
 //# sourceMappingURL=Logger.js.map
