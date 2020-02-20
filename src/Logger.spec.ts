@@ -76,7 +76,7 @@ describe("logger", () => {
                     } as any;
                     const next = sinon.spy();
 
-                    logger.info = sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.info = <Winston.LeveledLogMethod> <any> sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(message).to.equal("request");
                         expect(meta.client_ip).to.equal(remoteAddress);
                         expect(meta.method).to.equal(requestMethod);
@@ -91,7 +91,14 @@ describe("logger", () => {
                     const content2 = "testcontent2";
                     res.write(content1);
                     res.end(content2);
-
+                    expect(logger.info).to.have.been.calledOnceWith( 'request', {
+                        client_ip: remoteAddress,
+                        method: requestMethod,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                     expect(resWrite).to.have.been.calledWith(content1);
                     expect(resEnd).to.have.been.calledWith(content2);
@@ -110,7 +117,7 @@ describe("logger", () => {
                     } as any;
                     const next = sinon.spy();
 
-                    logger.info = sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.info = <Winston.LeveledLogMethod> <any> sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(message).to.equal("request");
                         expect(meta.client_ip).to.equal(remoteAddress);
                         expect(meta.method).to.equal(requestMethod);
@@ -123,6 +130,14 @@ describe("logger", () => {
                     logger.loggingMiddlewarePre(req as any, res, next);
                     res.end();
 
+                    expect(logger.info).to.have.been.calledOnceWith( 'request', {
+                        client_ip: remoteAddress,
+                        method: requestMethod,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                     expect(resWrite).to.have.not.been.called;
                     expect(resEnd).to.have.been.called;
@@ -138,7 +153,7 @@ describe("logger", () => {
                     const res: Express.Response = {} as any;
                     const next = sinon.spy();
 
-                    logger.info = sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.info = <Winston.LeveledLogMethod> <any> sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(message).to.equal("request");
                         expect(meta.client_ip).to.equal(remoteAddress);
                         expect(meta.method).to.equal(requestMethod);
@@ -150,6 +165,14 @@ describe("logger", () => {
                     });
                     logger.loggingMiddlewarePre(req as any, res, next);
 
+                    expect(logger.info).to.have.been.calledOnceWith( 'request', {
+                        client_ip: remoteAddress,
+                        method: requestMethod,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                     expect((res as any).write).to.equal(undefined);
                     expect((res as any).end).to.equal(undefined);
@@ -168,7 +191,7 @@ describe("logger", () => {
                     const res: Express.Response = {} as any;
                     const next = sinon.spy();
 
-                    logger.info = sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.info = <Winston.LeveledLogMethod> <any> sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(message).to.equal("request");
                         expect(meta.client_ip).to.equal(forwardedRemoteAddress);
                         expect(meta.method).to.equal(requestMethod);
@@ -180,6 +203,14 @@ describe("logger", () => {
                     });
                     logger.loggingMiddlewarePre(req as any, res, next);
 
+                    expect(logger.info).to.have.been.calledOnceWith( 'request', {
+                        client_ip: forwardedRemoteAddress,
+                        method: requestMethod,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                     expect((res as any).write).to.equal(undefined);
                     expect((res as any).end).to.equal(undefined);
@@ -194,7 +225,7 @@ describe("logger", () => {
                     const res: Express.Response = {statusCode: 200, sentBody: "dummy"} as any;
                     const next = sinon.spy();
 
-                    logger.log = sinon.spy((level: string, message: string, msg: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.log = <Winston.LeveledLogMethod> <any> sinon.spy((level: string, message: string, msg: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(level).to.equal("info");
                         expect(message).to.equal("response");
                         expect(msg.request_id).to.equal(requestId);
@@ -207,6 +238,14 @@ describe("logger", () => {
                     });
                     logger.loggingMiddlewarePost(req as any, res, next);
 
+                    expect(logger.log).to.have.been.calledOnceWith('info', 'response', {
+                        body: (res as any).sentBody,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        status: res.statusCode,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                 });
                 /* tslint:disable-next-line:max-line-length */
@@ -216,7 +255,7 @@ describe("logger", () => {
                     const res: Express.Response = {statusCode: 200, sentBody: "dummy"} as any;
                     const next = sinon.spy();
 
-                    logger.log = sinon.spy((level: string, message: string, msg: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.log = <Winston.LeveledLogMethod> <any> sinon.spy((level: string, message: string, msg: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(level).to.equal("info");
                         expect(message).to.equal("response");
                         expect(msg.request_id).to.equal(requestId);
@@ -229,6 +268,14 @@ describe("logger", () => {
                     });
                     logger.loggingMiddlewarePost(req as any, res, next);
 
+                    expect(logger.log).to.have.been.calledOnceWith('info', 'response', {
+                        body: undefined,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        status: res.statusCode,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                 });
                 it("should log the HTTP response with status code 403 as warn", () => {
@@ -237,7 +284,7 @@ describe("logger", () => {
                     const res: Express.Response = {statusCode: 403, sentBody: "dummy"} as any;
                     const next = sinon.spy();
 
-                    logger.log = sinon.spy((level: string, message: string, msg: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.log = <Winston.LeveledLogMethod> <any> sinon.spy((level: string, message: string, msg: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(level).to.equal("warn");
                         expect(message).to.equal("response");
                         expect(msg.request_id).to.equal(requestId);
@@ -250,6 +297,14 @@ describe("logger", () => {
                     });
                     logger.loggingMiddlewarePost(req as any, res, next);
 
+                    expect(logger.log).to.have.been.calledOnceWith('warn', 'response', {
+                        body: undefined,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        status: res.statusCode,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                 });
                 it("should log the HTTP response with status code 500 as error", () => {
@@ -258,7 +313,7 @@ describe("logger", () => {
                     const res: Express.Response = {statusCode: 500, sentBody: "dummy"} as any;
                     const next = sinon.spy();
 
-                    logger.log = sinon.spy((level: string, message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.log = <Winston.LeveledLogMethod> <any> sinon.spy((level: string, message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(level).to.equal("error");
                         expect(message).to.equal("response");
                         expect(meta.request_id).to.equal(requestId);
@@ -271,6 +326,14 @@ describe("logger", () => {
                     });
                     logger.loggingMiddlewarePost(req as any, res, next);
 
+                    expect(logger.log).to.have.been.calledOnceWith('error', 'response', {
+                        body: undefined,
+                        mts: sinon.match.number,
+                        request_id: requestId,
+                        request_url: fullRequestUrl,
+                        status: res.statusCode,
+                        ts: sinon.match.number
+                    })
                     expect(next).to.have.been.called;
                 });
             });
@@ -283,7 +346,7 @@ describe("logger", () => {
                     const req = {...request, method: requestMethod};
                     const res: Express.Response = {statusCode: 500} as any;
 
-                    logger.error = sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.error = <Winston.LeveledLogMethod> <any> sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(message).to.equal("error response");
                         expect(meta.msg).to.match(/^Error: valami.+/);
                         expect(meta.msg).to.match(/\[next\]/);
@@ -305,7 +368,7 @@ describe("logger", () => {
                     const req = {...request, method: requestMethod};
                     const res: Express.Response = {statusCode: 403} as any;
 
-                    logger.warn = sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
+                    logger.warn = <Winston.LeveledLogMethod> <any> sinon.spy((message: string, meta: any, callback: Winston.LogCallback): Winston.Logger => {
                         expect(message).to.equal("client error response");
                         expect(meta.method).to.equal(requestMethod);
                         expect(meta.request_id).to.equal(requestId);
