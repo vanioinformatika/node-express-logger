@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createLogger = void 0;
 const FluentLogger = require("fluent-logger");
 const Microtime = require("microtime");
 const Winston = require("winston");
