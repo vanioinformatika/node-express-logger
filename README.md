@@ -1,3 +1,5 @@
+# The project is deprecated and not maintained.
+
 # Express console and fluentd logger
 
 [![Build Status](https://travis-ci.org/vanioinformatika/node-express-logger.svg?branch=develop)](https://travis-ci.org/vanioinformatika/node-express-logger)
